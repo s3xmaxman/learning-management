@@ -31,7 +31,7 @@ const ChaptersSidebar = () => {
 
   useEffect(() => {
     setOpen(false);
-  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+  }, []);
 
   if (isLoading) return <Loading />;
   if (!user) return <div>Please sign in to view course progress.</div>;
