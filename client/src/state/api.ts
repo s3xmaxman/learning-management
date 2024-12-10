@@ -1,3 +1,15 @@
+/**
+ * APIクライアントの設定と各エンドポイントの定義
+ * 
+ * このファイルでは、ReduxToolkitのRTK Queryを使用してAPIクライアントを設定し、
+ * バックエンドとの通信に必要な全てのエンドポイントを定義しています。
+ * 
+ * 主な機能:
+ * - カスタムベースクエリの設定（認証トークンの自動付与）
+ * - エラーハンドリングとトースト通知の統合
+ * - レスポンスデータの標準化
+ */
+
 import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
 import { BaseQueryApi, FetchArgs } from "@reduxjs/toolkit/query";
 import { User } from "@clerk/nextjs/server";
@@ -68,6 +80,12 @@ export const api = createApi({
     USER CLERK
     =============== 
     */
+    /**
+     * ユーザー情報更新
+     * @param userId - 更新対象のユーザーID
+     * @param updatedUser - 更新するユーザー情報
+     * @returns 更新されたユーザー情報
+     */
     updateUser: build.mutation<User, Partial<User> & { userId: string }>({
       query: ({ userId, ...updatedUser }) => ({
         url: `users/clerk/${userId}`,
@@ -82,6 +100,11 @@ export const api = createApi({
     COURSES
     =============== 
     */
+    /**
+     * コース一覧取得
+     * @param category - フィルタリングするカテゴリー（オプション）
+     * @returns コース一覧
+     */
     getCourses: build.query<Course[], { category?: string }>({
       query: ({ category }) => ({
         url: "courses",
@@ -90,11 +113,22 @@ export const api = createApi({
       providesTags: ["Courses"],
     }),
 
+    /**
+     * 特定のコース情報取得
+     * @param id - コースID
+     * @returns コース詳細情報
+     */
     getCourse: build.query<Course, string>({
       query: (id) => `courses/${id}`,
       providesTags: (result, error, id) => [{ type: "Courses", id }],
     }),
 
+    /**
+     * 新規コース作成
+     * @param teacherId - 講師ID
+     * @param teacherName - 講師名
+     * @returns 作成されたコース情報
+     */
     createCourse: build.mutation<
       Course,
       { teacherId: string; teacherName: string }
@@ -107,6 +141,12 @@ export const api = createApi({
       invalidatesTags: ["Courses"],
     }),
 
+    /**
+     * コース情報更新
+     * @param courseId - 更新対象のコースID
+     * @param formData - 更新するコース情報
+     * @returns 更新されたコース情報
+     */
     updateCourse: build.mutation<
       Course,
       { courseId: string; formData: FormData }
@@ -121,6 +161,11 @@ export const api = createApi({
       ],
     }),
 
+    /**
+     * コース削除
+     * @param courseId - 削除対象のコースID
+     * @returns 削除結果
+     */
     deleteCourse: build.mutation<{ message: string }, string>({
       query: (courseId) => ({
         url: `courses/${courseId}`,
@@ -129,6 +174,15 @@ export const api = createApi({
       invalidatesTags: ["Courses"],
     }),
 
+    /**
+     * ビデオアップロードURL取得
+     * @param courseId - コースID
+     * @param chapterId - 章ID
+     * @param sectionId - セクションID
+     * @param fileName - ファイル名
+     * @param fileType - ファイルタイプ
+     * @returns アップロードURL
+     */
     getUploadVideoUrl: build.mutation<
       { uploadUrl: string; videoUrl: string },
       {
@@ -151,9 +205,20 @@ export const api = createApi({
     TRANSACTIONS
     =============== 
     */
+    /**
+     * 取引履歴取得
+     * @param userId - ユーザーID
+     * @returns 取引履歴
+     */
     getTransactions: build.query<Transaction[], string>({
       query: (userId) => `transactions?userId=${userId}`,
     }),
+
+    /**
+     * ストライプ決済インテント作成
+     * @param amount - 決済金額
+     * @returns 決済インテント
+     */
     createStripePaymentIntent: build.mutation<
       { clientSecret: string },
       { amount: number }
@@ -164,6 +229,12 @@ export const api = createApi({
         body: { amount },
       }),
     }),
+
+    /**
+     * 取引作成
+     * @param transaction - 取引情報
+     * @returns 作成された取引情報
+     */
     createTransaction: build.mutation<Transaction, Partial<Transaction>>({
       query: (transaction) => ({
         url: "transactions",
@@ -177,11 +248,22 @@ export const api = createApi({
     USER COURSE PROGRESS
     =============== 
     */
+    /**
+     * ユーザーのコース進捗状況取得
+     * @param userId - ユーザーID
+     * @returns コース進捗状況
+     */
     getUserEnrolledCourses: build.query<Course[], string>({
       query: (userId) => `users/course-progress/${userId}/enrolled-courses`,
       providesTags: ["Courses", "UserCourseProgress"],
     }),
 
+    /**
+     * ユーザーのコース進捗状況取得
+     * @param userId - ユーザーID
+     * @param courseId - コースID
+     * @returns コース進捗状況
+     */
     getUserCourseProgress: build.query<
       UserCourseProgress,
       { userId: string; courseId: string }
@@ -191,6 +273,13 @@ export const api = createApi({
       providesTags: ["UserCourseProgress"],
     }),
 
+    /**
+     * ユーザーのコース進捗状況更新
+     * @param userId - ユーザーID
+     * @param courseId - コースID
+     * @param progressData - 進捗状況データ
+     * @returns 更新された進捗状況
+     */
     updateUserCourseProgress: build.mutation<
       UserCourseProgress,
       {
