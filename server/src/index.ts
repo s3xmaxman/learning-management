@@ -5,10 +5,10 @@ import cors from "cors";
 import helmet from "helmet";
 import morgan from "morgan";
 import * as dynamoose from "dynamoose";
-
+import { createClerkClient } from "@clerk/express";
 // Route imports
 import courseRoutes from "./routes/courseRoutes";
-import { createClerkClient } from "@clerk/express";
+import userClerkRoutes from "./routes/userClerkRoutes";
 
 // Configuration
 dotenv.config();
@@ -38,6 +38,7 @@ app.get("/", (req, res) => {
 });
 
 app.use("/courses", courseRoutes);
+app.use("/users/clerk", userClerkRoutes);
 
 // Server
 const port = process.env.PORT || 3000;
