@@ -29,3 +29,5 @@ const CheckoutWizard = () => {
     </div>
   );
 };
+
+export default CheckoutWizard;
