@@ -3,6 +3,7 @@
 import Loading from "@/components/Loading";
 import { useUser } from "@clerk/nextjs";
 import { useCheckoutNavigation } from "@/hooks/useCheckoutNavigation";
+import CheckoutDetailsPage from "./details";
 
 const CheckoutWizard = () => {
   const { isLoaded } = useUser();
@@ -13,7 +14,7 @@ const CheckoutWizard = () => {
   const renderStep = () => {
     switch (checkoutStep) {
       case 1:
-        return "case 1";
+        return <CheckoutDetailsPage />;
       case 2:
         return "case 2";
       case 3:
