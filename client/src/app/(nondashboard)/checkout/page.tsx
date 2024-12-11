@@ -4,6 +4,7 @@ import Loading from "@/components/Loading";
 import { useUser } from "@clerk/nextjs";
 import { useCheckoutNavigation } from "@/hooks/useCheckoutNavigation";
 import CheckoutDetailsPage from "./details";
+import WizardStepper from "@/components/WizardStepper";
 
 const CheckoutWizard = () => {
   const { isLoaded } = useUser();
@@ -26,6 +27,7 @@ const CheckoutWizard = () => {
 
   return (
     <div className="checkout">
+      <WizardStepper currentStep={checkoutStep} />
       <div className="checkout__content">{renderStep()}</div>
     </div>
   );
