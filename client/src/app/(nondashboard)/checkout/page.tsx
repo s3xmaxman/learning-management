@@ -6,6 +6,7 @@ import { useCheckoutNavigation } from "@/hooks/useCheckoutNavigation";
 import CheckoutDetailsPage from "./details";
 import WizardStepper from "@/components/WizardStepper";
 import PaymentPage from "./payment";
+import CompletionPage from "./completion";
 
 const CheckoutWizard = () => {
   const { isLoaded } = useUser();
@@ -20,9 +21,9 @@ const CheckoutWizard = () => {
       case 2:
         return <PaymentPage />;
       case 3:
-        return "case 3";
+        return <CompletionPage />;
       default:
-        return "case 1";
+        return <CheckoutDetailsPage />;
     }
   };
 
