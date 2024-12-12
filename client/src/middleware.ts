@@ -4,23 +4,12 @@ import { NextResponse } from "next/server";
 const isStudentRoute = createRouteMatcher(["/user/(.*)"]);
 const isTeacherRoute = createRouteMatcher(["/teacher/(.*)"]);
 
-/**
- * クラークミドルウェア関数
- *
- * @param auth - 認証オブジェクト
- * @param req - リクエストオブジェクト
- * @returns NextResponse | undefined
- *
- * この関数は、ユーザーのロールに基づいてルートへのアクセスを制御します。
- * 学生用ルートに教師がアクセスしようとした場合、教師用コースページにリダイレクトします。
- * 教師用ルートに学生がアクセスしようとした場合、学生用コースページにリダイレクトします。
- */
 export default clerkMiddleware(async (auth, req) => {
   const { sessionClaims } = await auth();
 
   const userRole =
     (sessionClaims?.metadata as { userType: "student" | "teacher" })
-      ?.userType || "student";
+      ?.userType || "teacher";
 
   if (isStudentRoute(req)) {
     if (userRole !== "student") {

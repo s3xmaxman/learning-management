@@ -22,9 +22,9 @@ import { ArrowLeft, Plus } from "lucide-react";
 import { useParams, useRouter } from "next/navigation";
 import React, { useEffect } from "react";
 import { useForm } from "react-hook-form";
+import DroppableComponent from "./Droppable";
 import ChapterModal from "./ChapterModal";
 import SectionModal from "./SectionModal";
-import DroppableComponent from "./Droppable";
 
 const CourseEditor = () => {
   const router = useRouter();

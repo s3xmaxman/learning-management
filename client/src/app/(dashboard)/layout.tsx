@@ -22,6 +22,7 @@ export default function DashboardLayout({
 
   if (!isLoaded) return <Loading />;
   if (!user) return <div>Please sign in to access this page.</div>;
+
   return (
     <SidebarProvider>
       <div className="dashboard">
