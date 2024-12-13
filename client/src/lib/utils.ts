@@ -4,11 +4,20 @@ import * as z from "zod";
 import { api } from "@/state/api";
 import { toast } from "sonner";
 
+/**
+ * `clsx` と `tailwind-merge` を組み合わせて、クラス名を結合するためのユーティリティ関数です。
+ * @param inputs - クラス名の配列
+ * @returns 結合されたクラス名
+ */
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
 }
 
-// Convert cents to formatted currency string (e.g., 4999 -> "$49.99")
+/**
+ * セントをフォーマットされた通貨文字列に変換します (例: 4999 -> "$49.99")。
+ * @param cents - セント単位の金額
+ * @returns フォーマットされた通貨文字列
+ */
 export function formatPrice(cents: number | undefined): string {
   return new Intl.NumberFormat("en-US", {
     style: "currency",
@@ -16,24 +25,39 @@ export function formatPrice(cents: number | undefined): string {
   }).format((cents || 0) / 100);
 }
 
-// Convert dollars to cents (e.g., "49.99" -> 4999)
+/**
+ * ドルをセントに変換します (例: "49.99" -> 4999)。
+ * @param dollars - ドル単位の金額 (文字列または数値)
+ * @returns セント単位の金額
+ */
 export function dollarsToCents(dollars: string | number): number {
   const amount = typeof dollars === "string" ? parseFloat(dollars) : dollars;
   return Math.round(amount * 100);
 }
 
-// Convert cents to dollars (e.g., 4999 -> "49.99")
+/**
+ * セントをドルに変換します (例: 4999 -> "49.99")。
+ * @param cents - セント単位の金額
+ * @returns ドル単位の金額 (文字列)
+ */
 export function centsToDollars(cents: number | undefined): string {
   return ((cents || 0) / 100).toString();
 }
 
-// Zod schema for price input (converts dollar input to cents)
+/**
+ * 価格入力用の Zod スキーマです。ドル入力をセントに変換します。
+ * @example
+ * priceSchema.parse("49.99") // returns "4999"
+ */
 export const priceSchema = z.string().transform((val) => {
   const dollars = parseFloat(val);
   if (isNaN(dollars)) return "0";
   return dollarsToCents(dollars).toString();
 });
 
+/**
+ * 国名の配列です。
+ */
 export const countries = [
   "Afghanistan",
   "Albania",
@@ -231,14 +255,29 @@ export const countries = [
   "Zimbabwe",
 ];
 
+/**
+ * カスタムスタイルを定義するための定数です。
+ */
 export const customStyles = "text-gray-300 placeholder:text-gray-500";
 
+/**
+ * 金額を補助通貨単位に変換します。
+ * @param amount - 変換する金額
+ * @param factor - 乗数 (デフォルトは 100)
+ * @returns 補助通貨単位に変換された金額
+ */
 export function convertToSubCurrency(amount: number, factor = 100) {
   return Math.round(amount * factor);
 }
 
+/**
+ * ナビゲーションバーの高さを定義する定数です。
+ */
 export const NAVBAR_HEIGHT = 48;
 
+/**
+ * コースのカテゴリを定義する配列です。
+ */
 export const courseCategories = [
   { value: "technology", label: "Technology" },
   { value: "science", label: "Science" },
@@ -246,6 +285,9 @@ export const courseCategories = [
   { value: "artificial-intelligence", label: "Artificial Intelligence" },
 ] as const;
 
+/**
+ * DataGrid のカスタムスタイルを定義するオブジェクトです。
+ */
 export const customDataGridStyles = {
   border: "none",
   backgroundColor: "#17181D",
@@ -288,6 +330,12 @@ export const customDataGridStyles = {
   },
 };
 
+/**
+ * コースのフォームデータを FormData オブジェクトに変換します。
+ * @param data - コースのフォームデータ
+ * @param sections - セクションの配列
+ * @returns FormData オブジェクト
+ */
 export const createCourseFormData = (
   data: CourseFormData,
   sections: Section[]
@@ -299,6 +347,7 @@ export const createCourseFormData = (
   formData.append("price", data.coursePrice.toString());
   formData.append("status", data.courseStatus ? "Published" : "Draft");
 
+  // セクションとビデオの情報を追加
   const sectionsWithVideos = sections.map((section) => ({
     ...section,
     chapters: section.chapters.map((chapter) => ({
@@ -312,11 +361,19 @@ export const createCourseFormData = (
   return formData;
 };
 
+/**
+ * すべてのビデオをアップロードします。
+ * @param localSections - ローカルのセクションデータ
+ * @param courseId - コースID
+ * @param getUploadVideoUrl - ビデオアップロードURLを取得する関数
+ * @returns アップロード後のセクションデータ
+ */
 export const uploadAllVideos = async (
   localSections: Section[],
   courseId: string,
   getUploadVideoUrl: any
 ) => {
+  // ローカルのセクションデータを更新
   const updatedSections = localSections.map((section) => ({
     ...section,
     chapters: section.chapters.map((chapter) => ({
@@ -324,11 +381,14 @@ export const uploadAllVideos = async (
     })),
   }));
 
+  // 各セクションの各チャプターをループ処理
   for (let i = 0; i < updatedSections.length; i++) {
     for (let j = 0; j < updatedSections[i].chapters.length; j++) {
       const chapter = updatedSections[i].chapters[j];
+      // ビデオがファイルであり、かつMP4形式の場合のみアップロード
       if (chapter.video instanceof File && chapter.video.type === "video/mp4") {
         try {
+          // ビデオをアップロードし、チャプターデータを更新
           const updatedChapter = await uploadVideo(
             chapter,
             courseId,
@@ -349,6 +409,14 @@ export const uploadAllVideos = async (
   return updatedSections;
 };
 
+/**
+ * ビデオをアップロードする関数です。
+ * @param chapter - チャプターデータ
+ * @param courseId - コースID
+ * @param sectionId - セクションID
+ * @param getUploadVideoUrl - ビデオアップロードURLを取得する関数
+ * @returns アップロード後のチャプターデータ
+ */
 async function uploadVideo(
   chapter: Chapter,
   courseId: string,
@@ -358,6 +426,7 @@ async function uploadVideo(
   const file = chapter.video as File;
 
   try {
+    // アップロードURLとビデオURLを取得
     const { uploadUrl, videoUrl } = await getUploadVideoUrl({
       courseId,
       sectionId,
@@ -366,6 +435,7 @@ async function uploadVideo(
       fileType: file.type,
     }).unwrap();
 
+    // ビデオをアップロード
     await fetch(uploadUrl, {
       method: "PUT",
       headers: {
@@ -377,6 +447,7 @@ async function uploadVideo(
       `Video uploaded successfully for chapter ${chapter.chapterId}`
     );
 
+    // アップロード後のチャプターデータを返す
     return { ...chapter, video: videoUrl };
   } catch (error) {
     console.error(
