@@ -1,39 +1,55 @@
-# Use the AWS Lambda Node.js 20 base image
+# AWS Lambda Node.js 20のベースイメージをビルドステージとして使用
+# これにより、必要なツールとライブラリが揃った環境でアプリケーションをビルドできます
 FROM public.ecr.aws/lambda/nodejs:20 AS build
 
-# Set the working directory
+# コンテナ内の作業ディレクトリを/appに設定
+# ここにアプリケーションのソースコードと依存関係が配置されます
 WORKDIR /app
 
-# Copy package.json and package-lock.json
+# package.jsonとpackage-lock.jsonを現在のディレクトリにコピー
+# これにより、npm installが依存関係をインストールする際にこれらのファイルを利用できます
 COPY package*.json ./
 
-# Install dependencies (including dev dependencies for building)
+# npm installを実行して、package.jsonに記載された依存関係をインストール
+# ビルドに必要な開発依存関係もインストールされます
 RUN npm install
 
-# Copy the rest of your application's source code
+# アプリケーションのソースコード全体をコンテナの/appディレクトリにコピー
+# これにより、ビルドプロセスでソースコードを利用できます
 COPY . .
 
-# Build TypeScript files
+# TypeScriptファイルをJavaScriptファイルにコンパイル
+# npm run buildは、tsconfig.jsonの設定に基づいてTypeScriptファイルをビルドします
 RUN npm run build
 
-# Remove dev dependencies
+# 本番環境では不要な開発依存関係を削除
+# これにより、最終的なイメージサイズを小さくします
 RUN npm prune --production
 
-# Use a second stage to prepare the production image
+# 本番環境用のイメージを準備するための第二段階
+# ビルドステージで作成された成果物のみを含めることで、イメージサイズを最適化します
 FROM public.ecr.aws/lambda/nodejs:20
 
-# Set the working directory
+# Lambda関数の実行時に使用される作業ディレクトリを設定
+# LAMBDA_TASK_ROOTはLambda環境で自動的に設定される環境変数です
 WORKDIR ${LAMBDA_TASK_ROOT}
 
-# Copy built JavaScript files and node_modules from the build stage
+# ビルドステージからビルドされたJavaScriptファイル（/app/dist）をLambdaの作業ディレクトリにコピー
+# これにより、Lambda関数が実行時に必要なコードを利用できます
 COPY --from=build /app/dist ${LAMBDA_TASK_ROOT}
+
+# ビルドステージからnode_modulesディレクトリをLambdaの作業ディレクトリにコピー
+# これにより、Lambda関数が実行時に必要な依存関係を利用できます
 COPY --from=build /app/node_modules ${LAMBDA_TASK_ROOT}/node_modules
 
-# Copy package.json (optional)
+# ビルドステージからpackage.jsonをLambdaの作業ディレクトリにコピー (オプション)
+# これは、Lambda関数が実行時にpackage.jsonを必要とする場合に役立ちます
 COPY --from=build /app/package*.json ${LAMBDA_TASK_ROOT}
 
-# Set environment variables (adjust as needed)
+# 環境変数を設定
+# NODE_ENV=productionを設定することで、本番環境向けの最適化が有効になります
 ENV NODE_ENV=production
 
-# Command to start the Lambda function
+# Lambda関数を開始するコマンドを設定
+# index.handlerは、Lambda関数のエントリポイントとなるハンドラー関数を指定します
 CMD ["index.handler"]
